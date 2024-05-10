@@ -8,7 +8,7 @@ from validators.validators import (validate_choice, validate_date,
                                    validate_value)
 
 
-class Menu:
+class Handler:
     """
     Основной класс для взаимодействия с пользователем
     и управления действиями приложения.
