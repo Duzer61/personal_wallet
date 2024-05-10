@@ -164,7 +164,7 @@ class Handler:
         while not choice:
             for i in menu_list:
                 print(i)
-            choice = input(cf.SELECT_ACTION)
+            choice = input(cf.SELECT_NUMBER)
             choice = validate_choice(choice, len(menu_list))
         return int(choice)
 
