@@ -3,7 +3,9 @@ from managers.data_managers import Balance
 
 
 def main() -> None:
-    pass
+    balance = Balance(cf.DATA_PATH)
+    menu = AdvancedMenu(balance)
+    menu.start()
 
 
 if __name__ == '__main__':
