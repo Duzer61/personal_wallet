@@ -1,0 +1,1 @@
+DATA_PATH = 'data/balance.json'  # путь к файлу с данными
