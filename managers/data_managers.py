@@ -43,7 +43,6 @@ class Balance:
             self.save()
             return
         else:
-            print('Есть файл. Читаю.')
             with open(self.path, 'r') as f:
                 temp = json.load(f)
                 for action in temp:
