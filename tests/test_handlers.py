@@ -41,10 +41,39 @@ class TestHandler(unittest.TestCase):
         self.assertIsInstance(check_date, date)
         self.assertEqual(check_date, date(2024, 5, 1))
 
-    # @patch('builtins.print')
-    # def test_show_balance(self, mock_print):
-    #     self.handler.show_balance()
-    #     mock_print.assert_called_with(f'\n{cf.CURRENT_BALANCE}0\n')
+    @patch('handlers.handler.Handler.get_date')
+    @patch('handlers.handler.Handler.get_category_menu')
+    @patch('handlers.handler.Handler.get_value')
+    @patch('handlers.handler.Handler.get_description')
+    @patch.object(Balance, 'add_action')
+    @patch('builtins.print')
+    @patch.object(AdvancedHandler, 'show_balance')
+    def test_add_action(
+        self, mock_show_balance, mock_print, mock_add_action, mock_get_description,
+        mock_get_value, mock_get_category_menu, mock_get_date
+    ):
+        mock_get_date.return_value = date(2024, 5, 1)
+        mock_get_category_menu.return_value = 'Category'
+        mock_get_value.return_value = 100
+        mock_get_description.return_value = 'Description'
+        mock_add_action.return_value = 'Added Action'
+        mock_show_balance.return_value = None
+
+        self.handler.add_action()
+
+        mock_add_action.assert_called_once_with({
+            'date': date(2024, 5, 1),
+            'category': 'Category',
+            'value': 100,
+            'description': 'Description'
+        })
+        print_calls = [
+            call(cf.ACTION_ADDED),
+            call('Added Action')
+        ]
+        mock_print.assert_has_calls(print_calls)
+        mock_show_balance.assert_called_once()
+
     @patch('builtins.input', side_effect=['\n'])
     def test_show_balance(self, mock_input):
         with patch('builtins.print') as mock_print:
@@ -54,7 +83,6 @@ class TestHandler(unittest.TestCase):
                 call()
             ]
             mock_print.assert_has_calls(expected_calls)
-
 
 if __name__ == '__main__':
     unittest.main()
