@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 from datetime import date
 
@@ -9,14 +10,14 @@ class TestFinance(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.test_file = 'data/test.json'
+        cls.test_dir = 'temp'
+        cls.test_file = os.path.join(cls.test_dir, 'test.json')
         cls.balance = Balance(cls.test_file)
 
     @classmethod
     def tearDownClass(cls):
-        # Удаляем файл в конце всех тестов
-        if os.path.exists(cls.test_file):
-            os.remove(cls.test_file)
+        if os.path.exists(cls.test_dir):
+            shutil.rmtree(cls.test_dir)
 
     def test_action_str(self):
         action = Action(date(2024, 5, 21), 'Доход', 1000, 'Зарплата')
@@ -50,11 +51,10 @@ class TestFinance(unittest.TestCase):
         self.balance.add_action(data)
         self.balance.save()
 
-        # Create a new balance instance to load from the saved file
-        # new_balance = Balance(self.test_file)
-        self.assertEqual(self.balance.get_incomes(), 1000)
-        self.assertEqual(self.balance.get_expenses(), 500)
-        self.assertEqual(str(self.balance), '500')
+        new_balance = Balance(self.test_file)
+        self.assertEqual(new_balance.get_incomes(), 1000)
+        self.assertEqual(new_balance.get_expenses(), 500)
+        self.assertEqual(str(new_balance), '500')
 
 
 if __name__ == '__main__':
