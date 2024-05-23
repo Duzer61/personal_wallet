@@ -7,7 +7,7 @@ from unittest.mock import call, patch
 
 from config import config as cf
 from handlers.advanced_handler import AdvancedHandler
-from managers.data_managers import Balance
+from managers.data_managers import Action, Balance
 
 
 class TestHandler(unittest.TestCase):
@@ -18,6 +18,25 @@ class TestHandler(unittest.TestCase):
         cls.test_file = os.path.join(cls.test_dir, 'test.json')
         cls.balance = Balance(cls.test_file)
         cls.handler = AdvancedHandler(cls.balance)
+
+        cls.balance.actions = [
+            Action(
+                date=date(2024, 5, 1), category='Доход',
+                value=100_000, description='Test income'
+            ),
+            Action(
+                date=date(2024, 5, 2), category='Расход',
+                value=10_000, description='Test spending'
+            ),
+            Action(
+                date=date(2024, 5, 3), category='Доход',
+                value=5_000, description='Test income 2'
+            ),
+            Action(
+                date=date(2024, 5, 4), category='Расход',
+                value=1_000, description='Test spending 2'
+            ),
+        ]
 
     @classmethod
     def tearDownClass(cls):
@@ -99,6 +118,23 @@ class TestHandler(unittest.TestCase):
         self.handler.to_exit()
         mock_save.assert_called_once()
         mock_exit.assert_called_once()
+
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_category_menu',
+        side_effect=['Доход', 'Расход']
+    )
+    def test_search_by_category(self, mock_get_category_menu):
+        expected_categories = ['Доход', 'Расход']
+        for counter, category in enumerate(expected_categories):
+            result = self.handler.search_by_category()
+            self.assertEqual(len(result), 2)
+            self.assertIn(self.handler.balance.actions[counter], result)
+            self.assertIn(self.handler.balance.actions[counter + 2], result)
+
+            categories = [action.category for action in result]
+            self.assertIn(category, categories)
+            unexpected_category = 'Расход' if category == 'Доход' else 'Доход'
+            self.assertNotIn(unexpected_category, categories)
 
 
 if __name__ == '__main__':
