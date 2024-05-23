@@ -136,6 +136,15 @@ class TestHandler(unittest.TestCase):
             unexpected_category = 'Расход' if category == 'Доход' else 'Доход'
             self.assertNotIn(unexpected_category, categories)
 
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_value',
+        side_effect=[100_000.0]
+    )
+    def test_search_by_value(self, mock_get_value):
+        result = self.handler.search_by_value()
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.handler.balance.actions[0], result)
+
 
 if __name__ == '__main__':
     unittest.main()
