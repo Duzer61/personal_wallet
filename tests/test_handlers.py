@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import unittest
 from datetime import date
 from unittest.mock import call, patch
@@ -49,8 +50,9 @@ class TestHandler(unittest.TestCase):
     @patch('builtins.print')
     @patch.object(AdvancedHandler, 'show_balance')
     def test_add_action(
-        self, mock_show_balance, mock_print, mock_add_action, mock_get_description,
-        mock_get_value, mock_get_category_menu, mock_get_date
+        self, mock_show_balance, mock_print, mock_add_action,
+        mock_get_description, mock_get_value, mock_get_category_menu,
+        mock_get_date
     ):
         mock_get_date.return_value = date(2024, 5, 1)
         mock_get_category_menu.return_value = 'Category'
@@ -83,6 +85,21 @@ class TestHandler(unittest.TestCase):
                 call()
             ]
             mock_print.assert_has_calls(expected_calls)
+
+    @patch('builtins.input', side_effect=['Нет'])
+    @patch('sys.exit')
+    def test_to_exit_without_saving(self, mock_exit, mock_input):
+        self.handler.to_exit()
+        mock_exit.assert_called_once()
+
+    @patch('builtins.input', side_effect=['any_string'])
+    @patch('sys.exit')
+    @patch.object(AdvancedHandler, 'save')
+    def test_to_exit_with_saving(self, mock_save, mock_exit, mock_input):
+        self.handler.to_exit()
+        mock_save.assert_called_once()
+        mock_exit.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()
