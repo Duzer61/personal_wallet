@@ -145,6 +145,26 @@ class TestHandler(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertIn(self.handler.balance.actions[0], result)
 
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_date',
+        side_effect=[date(2024, 5, 1)]
+    )
+    def test_search_by_date(self, mock_get_date):
+        result = self.handler.search_by_date()
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.handler.balance.actions[0], result)
+
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_date',
+        side_effect=[date(2024, 5, 1), date(2024, 5, 3)]
+    )
+    def test_search_by_period(self, mock_get_date):
+        result = self.handler.search_by_period()
+        self.assertEqual(len(result), 3)
+        for action in self.handler.balance.actions[:3]:
+            self.assertIn(action, result)
+        self.assertNotIn(self.handler.balance.actions[3], result)
+
 
 if __name__ == '__main__':
     unittest.main()
