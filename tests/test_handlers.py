@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 import unittest
 from datetime import date
 from unittest.mock import call, patch
