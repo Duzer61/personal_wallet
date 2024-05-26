@@ -37,6 +37,8 @@ class TestHandler(unittest.TestCase):
             ),
         ]
 
+        cls.balance.balance = 94_000.0
+
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls.test_dir):
@@ -99,7 +101,7 @@ class TestHandler(unittest.TestCase):
         with patch('builtins.print') as mock_print:
             self.handler.show_balance()
             expected_calls = [
-                call(f'\n{cf.CURRENT_BALANCE}0\n'),
+                call(f'\n{cf.CURRENT_BALANCE}94000.0\n'),
                 call()
             ]
             mock_print.assert_has_calls(expected_calls)
@@ -163,6 +165,38 @@ class TestHandler(unittest.TestCase):
         for action in self.handler.balance.actions[:3]:
             self.assertIn(action, result)
         self.assertNotIn(self.handler.balance.actions[3], result)
+
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_category_menu',
+        side_effect=['Доход', 'Расход']
+    )
+    def test_edit_category(self, mock_get_category_menu):
+        edit_action = self.handler.balance.actions[1]
+
+        self.handler.edit_category(edit_action)
+        self.assertEqual(edit_action.category, 'Доход')
+        self.assertEqual(self.handler.balance.balance, 114_000.0)
+
+        self.handler.edit_category(edit_action)
+        self.assertEqual(edit_action.category, 'Расход')
+        self.assertEqual(self.handler.balance.balance, 94_000.0)
+
+    @patch(
+        'handlers.advanced_handler.AdvancedHandler.get_value',
+        side_effect=[2000.0, 1000.0, 6000.0, 5000.0]
+    )
+    def test_edit_value(self, mock_get_value):
+        edit_action = self.handler.balance.actions[3]
+        self.handler.edit_value(edit_action)
+        self.assertEqual(edit_action.value, 2000.0)
+        self.assertEqual(self.handler.balance.balance, 93_000.0)
+        self.handler.edit_value(edit_action)
+
+        edit_action = self.handler.balance.actions[2]
+        self.handler.edit_value(edit_action)
+        self.assertEqual(edit_action.value, 6000.0)
+        self.assertEqual(self.handler.balance.balance, 95_000.0)
+        self.handler.edit_value(edit_action)
 
 
 if __name__ == '__main__':
