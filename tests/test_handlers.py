@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from copy import deepcopy
 from datetime import date
 from unittest.mock import call, patch
 
@@ -12,13 +13,17 @@ from managers.data_managers import Action, Balance
 class TestHandler(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Создаем экземпляр Handler для тестирования
         cls.test_dir = 'temp'
         cls.test_file = os.path.join(cls.test_dir, 'test.json')
-        cls.balance = Balance(cls.test_file)
-        cls.handler = AdvancedHandler(cls.balance)
 
-        cls.balance.actions = [
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls.test_dir):
+            shutil.rmtree(cls.test_dir)
+
+    def setUp(self):
+        self.balance = Balance(self.test_file)
+        self.balance.actions = [
             Action(
                 date=date(2024, 5, 1), category='Доход',
                 value=100_000, description='Test income'
@@ -36,17 +41,11 @@ class TestHandler(unittest.TestCase):
                 value=1_000, description='Test spending 2'
             ),
         ]
-
-        cls.balance.balance = 94_000.0
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls.test_dir):
-            shutil.rmtree(cls.test_dir)
+        self.balance.balance = 94_000.0
+        self.handler = AdvancedHandler(self.balance)
 
     @patch('builtins.input', side_effect=['1', '2'])
     def test_get_category_menu(self, mock_input):
-        # Проверяем, что метод get_category_menu возвращает ожидаемую категорию
         self.assertEqual(self.handler.get_category_menu(), 'Доход')
         self.assertEqual(self.handler.get_category_menu(), 'Расход')
 
@@ -183,20 +182,36 @@ class TestHandler(unittest.TestCase):
 
     @patch(
         'handlers.advanced_handler.AdvancedHandler.get_value',
-        side_effect=[2000.0, 1000.0, 6000.0, 5000.0]
+        side_effect=[2000.0, 6000.0]
     )
     def test_edit_value(self, mock_get_value):
         edit_action = self.handler.balance.actions[3]
         self.handler.edit_value(edit_action)
         self.assertEqual(edit_action.value, 2000.0)
         self.assertEqual(self.handler.balance.balance, 93_000.0)
-        self.handler.edit_value(edit_action)
 
         edit_action = self.handler.balance.actions[2]
         self.handler.edit_value(edit_action)
         self.assertEqual(edit_action.value, 6000.0)
+        self.assertEqual(self.handler.balance.balance, 94_000.0)
+
+    @patch('builtins.input', side_effect=['\n', '\n'])
+    def test_delete_action(self, mock_input):
+        edit_action = self.handler.balance.actions[3]
+        selected_actions = self.handler.balance.actions[1:4:2]
+
+        self.handler.delete_action(edit_action, selected_actions)
+        self.assertEqual(len(self.handler.balance.actions), 3)
+        self.assertEqual(len(selected_actions), 1)
+        self.assertNotIn(edit_action, self.handler.balance.actions)
+        self.assertNotIn(edit_action, selected_actions)
         self.assertEqual(self.handler.balance.balance, 95_000.0)
-        self.handler.edit_value(edit_action)
+
+        edit_action = self.handler.balance.actions[2]
+        selected_actions = self.handler.balance.actions[:3:2]
+
+        self.handler.delete_action(edit_action, selected_actions)
+        self.assertEqual(self.handler.balance.balance, 90_000.0)
 
 
 if __name__ == '__main__':
