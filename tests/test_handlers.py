@@ -1,7 +1,6 @@
 import os
 import shutil
 import unittest
-from copy import deepcopy
 from datetime import date
 from unittest.mock import call, patch
 
